@@ -42,3 +42,6 @@ Changes are recorded to a JSON-lines logfile at `changes.log` in the project roo
 ```
 {"ts":"2026-03-02T12:00:00Z","event":"score_changed","data":{...}}
 ```
+
+#### Future Enhancements
+Future enhancements are tracked under design/TO_DO.md 
