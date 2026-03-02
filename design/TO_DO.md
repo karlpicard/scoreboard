@@ -17,4 +17,5 @@ This file tracks upcoming features and enhancements for the scoreboard app.
 - [ ] Create test scripts to exercise server functionality automatically
 - [ ] Improve error handling and user feedback
 - [ ] Dependency setup in a new environment
+- [ ] Update the font on the site, system like font, Change the color for the different teams
 - [ ] Deploy to production (Docker/Heroku)
