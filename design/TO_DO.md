@@ -16,4 +16,5 @@ This file tracks upcoming features and enhancements for the scoreboard app.
 - [ ] Add tests for API endpoints and core functions (use pytest or similar)
 - [ ] Create test scripts to exercise server functionality automatically
 - [ ] Improve error handling and user feedback
+- [ ] Dependency setup in a new environment
 - [ ] Deploy to production (Docker/Heroku)
