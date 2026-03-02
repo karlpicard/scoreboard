@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Live Scoreboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&display=swap');
+        
+        @font-face {
+            font-family: 'Digital-7';
+            src: url('https://cdn.jsdelivr.net/npm/digital-7@1.0.0/digital-7.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a1a;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: #fff;
+        }
+        
+        .scoreboard-container {
+            background: #222;
+            border-radius: 8px;
+            max-width: 1000px;
+            width: 100%;
+            padding: 30px;
+        }
+        
+        .scoreboard-header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #444;
+            padding-bottom: 20px;
+        }
+        
+        .header-title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+        
+        .header-info {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            flex-wrap: wrap;
+        }
+        
+        .header-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .label {
+            font-weight: 600;
+            color: #aaa;
+            font-size: 14px;
+        }
+        
+        .value {
+            font-size: 16px;
+            color: #fff;
+            padding: 4px 8px;
+            background: #333;
+            border-radius: 4px;
+            border: 1px solid #555;
+        }
+        
+        .scoreboard-main {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .team {
+            background: #2a2a2a;
+            padding: 30px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #444;
+        }
+        
+        .team-name-edit {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        .team-name-input {
+            font-size: 22px;
+            font-weight: bold;
+            border: 1px solid #555;
+            border-radius: 4px;
+            padding: 8px 12px;
+            text-align: center;
+            background: #333;
+            color: #fff;
+        }
+        
+        .team-score {
+            font-size: 120px;
+            font-weight: bold;
+            color: #0f0;
+            margin: 20px 0;
+            font-family: 'Digital-7', 'Courier New', monospace;
+            text-shadow: 0 0 10px #0f0;
+            letter-spacing: 2px;
+        }
+        
+        .team-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        button {
+            padding: 12px 20px;
+            font-size: 18px;
+            font-weight: bold;
+            border: 1px solid #555;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #333;
+            color: #fff;
+        }
+        
+        button:hover {
+            background: #444;
+            border-color: #666;
+        }
+        
+        button:active {
+            transform: scale(0.95);
+        }
+        
+        .btn-add {
+            background: #1a4d1a;
+            border-color: #2d7a2d;
+        }
+        
+        .btn-add:hover {
+            background: #2d7a2d;
+        }
+        
+        .btn-subtract {
+            background: #4d1a1a;
+            border-color: #7a2d2d;
+        }
+        
+        .btn-subtract:hover {
+            background: #7a2d2d;
+        }
+        
+        .btn-reset {
+            background: #4d3a1a;
+            border-color: #7a5a2d;
+        }
+        
+        .btn-reset:hover {
+            background: #7a5a2d;
+        }
+        
+        .scoreboard-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .footer-controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .save-btn {
+            background: #333;
+            border-color: #555;
+        }
+        
+        .save-btn:hover {
+            background: #444;
+        }
+        
+        .footer-meta {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .meta-input {
+            padding: 8px 12px;
+            border: 1px solid #555;
+            border-radius: 4px;
+            font-size: 14px;
+            background: #333;
+            color: #fff;
+        }
+        
+        .share-link {
+            padding: 8px 12px;
+            background: #333;
+            border-radius: 4px;
+            font-size: 12px;
+            border: 1px solid #555;
+            word-break: break-all;
+            color: #aaa;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: text;
+        }
+        
+        .share-link:hover {
+            background: #3a3a3a;
+            border-color: #0f0;
+            color: #0f0;
+            text-shadow: 0 0 5px #0f0;
+        }
+        
+        .share-link.copied {
+            background: #2d5a2d;
+            border-color: #0f0;
+            color: #0f0;
+        }
+
+        #copy_button {
+            background: #333;
+            border: 1px solid #555;
+            border-radius: 4px;
+            color: #fff;
+            transition: all 0.2s ease;
+        }
+        #copy_button:hover {
+            background: #444;
+            border-color: #666;
+        }
+
+        
+        @media (max-width: 768px) {
+            .scoreboard-main {
+                grid-template-columns: 1fr;
+            }
+            
+            .header-info {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .team-score {
+                font-size: 80px;
+            }
+            
+            .scoreboard-footer {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="setup-modal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; display:none; justify-content:center; align-items:center;">
+        <div style="background:#2a2a2a; padding:40px; border-radius:8px; text-align:center; border:1px solid #555; max-width:400px;">
+            <h2 style="color:#fff; margin-bottom:20px;">Create New Game</h2>
+            <input type="text" id="setup-game-name" class="meta-input" placeholder="Enter game name..." style="width:100%; padding:12px; margin-bottom:15px; font-size:16px;" autofocus />
+            <input type="date" id="setup-game-date" class="meta-input" style="width:100%; padding:12px; margin-bottom:20px; font-size:16px;" />
+            <button onclick="confirmGameSetup()" style="background:#2d7a2d; padding:12px 30px; font-size:16px; width:100%; cursor:pointer;">Create Game</button>
+        </div>
+    </div>
+
+    <div class="scoreboard-container">
+        <div class="scoreboard-header">
+            <div class="header-title" id="game_name">Default Game</div>
+            <div class="header-info">
+                <div class="header-item">
+                    <span class="label">Date:</span>
+                    <input type="date" id="game_date" class="value" style="border: 2px solid #667eea;" />
+                </div>
+                <div class="header-item">
+                    <button id="copy_button" style="padding:4px 8px;font-size:12px;cursor:pointer;">Share Link</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="scoreboard-main">
+            <div class="team">
+                <div class="team-name-edit">
+                    <input type="text" id="team1_name" class="team-name-input" value="team1" />
+                </div>
+                <div class="team-score" id="team1_score">0</div>
+                <div class="team-controls">
+                    <button class="btn-subtract" onclick="changeTeamScore(1, -1)">−</button>
+                    <button class="btn-add" onclick="changeTeamScore(1, 1)">+</button>
+                </div>
+            </div>
+            
+            <div class="team">
+                <div class="team-name-edit">
+                    <input type="text" id="team2_name" class="team-name-input" value="team2" />
+                </div>
+                <div class="team-score" id="team2_score">0</div>
+                <div class="team-controls">
+                    <button class="btn-subtract" onclick="changeTeamScore(2, -1)">−</button>
+                    <button class="btn-add" onclick="changeTeamScore(2, 1)">+</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="scoreboard-footer">
+            <div class="footer-meta">
+                <input type="text" id="game_name_input" class="meta-input" placeholder="Game name" />
+            </div>
+            <div class="footer-controls">
+                <button class="btn-reset" onclick="resetScores()">Reset Scores</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Extract game_id from URL
+        const pathParts = window.location.pathname.split('/');
+        const gameId = pathParts[2] || 'default';
+        
+        const socket = io({
+            query: { game_id: gameId }
+        });
+        
+        function getCurrentGameId() {
+            return gameId;
+        }
+        
+        function updateShareUrl() {
+            // simply attach handler; URL is generated on click
+            document.getElementById('copy_button').onclick = copyShareUrl;
+        }
+        
+        function copyShareUrl() {
+            const url = `${window.location.origin}/game/${gameId}`;
+            navigator.clipboard.writeText(url).then(() => {
+                const btn = document.getElementById('copy_button');
+                const orig = btn.textContent;
+                btn.textContent = 'Copied!';
+                btn.disabled = true;
+                setTimeout(() => {
+                    btn.textContent = orig;
+                    btn.disabled = false;
+                }, 1500);
+            }).catch(err => {
+                console.error('Failed to copy URL:', err);
+            });
+        }
+        
+        socket.on('state_update', state => {
+            if (state.game_id !== gameId) return;
+            document.getElementById('game_name').textContent = state.game_name;
+            document.getElementById('game_name_input').value = state.game_name;
+            document.getElementById('game_date').value = state.game_date;
+            document.getElementById('team1_name').value = state.team1_name;
+            document.getElementById('team2_name').value = state.team2_name;
+            document.getElementById('team1_score').textContent = state.team1_score;
+            document.getElementById('team2_score').textContent = state.team2_score;
+            updateShareUrl();
+        });
+        
+        function changeTeamScore(team, delta) {
+            socket.emit('change_score', { game_id: gameId, team: team, delta: delta });
+        }
+        
+        // Auto-save game name on change
+        document.getElementById('game_name_input').addEventListener('change', () => {
+            const gameName = document.getElementById('game_name_input').value;
+            if (gameName.trim()) {
+                socket.emit('set_game_metadata', {
+                    game_id: gameId,
+                    game_name: gameName
+                });
+            }
+        });
+        
+        // Auto-save game date on change
+        document.getElementById('game_date').addEventListener('change', () => {
+            const gameDate = document.getElementById('game_date').value;
+            if (gameDate) {
+                socket.emit('set_game_metadata', {
+                    game_id: gameId,
+                    game_date: gameDate
+                });
+            }
+        });
+        
+        // Auto-save team names on change
+        document.getElementById('team1_name').addEventListener('change', () => {
+            const name = document.getElementById('team1_name').value;
+            if (name.trim()) {
+                socket.emit('set_name', { game_id: gameId, team: 1, name: name });
+            }
+        });
+        
+        document.getElementById('team2_name').addEventListener('change', () => {
+            const name = document.getElementById('team2_name').value;
+            if (name.trim()) {
+                socket.emit('set_name', { game_id: gameId, team: 2, name: name });
+            }
+        });
+        
+        function confirmGameSetup() {
+            const gameName = document.getElementById('setup-game-name').value;
+            const gameDate = document.getElementById('setup-game-date').value;
+            
+            if (!gameName.trim()) {
+                alert('Please enter a game name');
+                return;
+            }
+            
+            fetch(`/api/game/create/${gameId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    game_name: gameName,
+                    game_date: gameDate || new Date().toISOString().split('T')[0]
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('setup-modal').style.display = 'none';
+                // Request state update from server
+                const state = data;
+                document.getElementById('game_name').textContent = state.game_name;
+                document.getElementById('game_name_input').value = state.game_name;
+                document.getElementById('game_date').value = state.game_date;
+                document.getElementById('team1_name').value = state.team1_name;
+                document.getElementById('team2_name').value = state.team2_name;
+                document.getElementById('team1_score').textContent = state.team1_score;
+                document.getElementById('team2_score').textContent = state.team2_score;
+            })
+            .catch(err => alert('Error creating game: ' + err));
+        }
+        
+        function resetScores() {
+            if (confirm('Are you sure you want to reset the scores?')) {
+                socket.emit('reset_scores', { game_id: gameId });
+            }
+        }
+        
+        // Check if game exists on load
+        async function checkGameAndSetup() {
+            try {
+                const res = await fetch(`/api/game/${gameId}/exists`);
+                const data = await res.json();
+                if (!data.exists) {
+                    // Show setup modal for new games
+                    const modal = document.getElementById('setup-modal');
+                    modal.style.display = 'flex';
+                    document.getElementById('setup-game-date').valueAsDate = new Date();
+                }
+            } catch (err) {
+                console.error('Error checking game:', err);
+            }
+        }
+        
+        // Initialize on load
+        window.addEventListener('load', () => {
+            if (gameId !== 'default') {
+                checkGameAndSetup();
+            }
+            updateShareUrl();
+        });
+    </script>
+</body>
+</html>

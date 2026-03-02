@@ -1,0 +1,2 @@
+{"ts": "2026-03-02T18:42:35.250803Z", "event": "db_initialized", "data": {"path": "/Users/karlpicard/github/scoreboard/score.db", "test_game_created": true}}
+{"ts": "2026-03-02T18:48:52.251628Z", "event": "game_created", "data": {"game_id": "0ejl30o4", "game_name": "Lincoln vs Hale", "game_date": "2026-03-02"}}
