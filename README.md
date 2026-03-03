@@ -2,6 +2,8 @@
 
 This is a minimal Flask-based application that tracks a single score in a SQLite database. Users can update the score live and viewers see updates in real time via websockets.
 
+Current feature set is a basic game scoreboard where the points increase/decrease by one. The game can be named along with the teams. There is logic to share the URL with someone else to view the score
+
 ## Setup
 
 ```bash
